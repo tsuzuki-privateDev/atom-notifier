@@ -1,6 +1,7 @@
 package com.tatsu.atomnotifier
 
 import android.media.MediaPlayer
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,6 +20,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.tatsu.atomnotifier.ui.theme.AtomNotifierTheme
+import android.view.WindowManager
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
 
 lateinit var server: AlertHttpServer
 
@@ -79,11 +87,31 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AlertScreen(condition: String, modifier: Modifier = Modifier) {
-    Column {
-        Text(
-            text = condition,
-            modifier = modifier
-        )
+
+    if (condition == "ALERT受信") {
+
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.Red),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = condition,
+                fontSize = 60.sp,
+                color = Color.White
+            )
+        }
+
+    } else {
+        Column {
+            Text(
+                text = "$condition\n時計は後で追加",
+                modifier = modifier
+            )
+        }
     }
 }
 
