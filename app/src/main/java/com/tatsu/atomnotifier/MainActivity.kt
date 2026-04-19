@@ -1,5 +1,6 @@
 package com.tatsu.atomnotifier
 
+import android.media.MediaPlayer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,6 +24,27 @@ lateinit var server: AlertHttpServer
 
 class MainActivity : ComponentActivity() {
     var condition by mutableStateOf("待機中")
+    var mediaPlayer: MediaPlayer? = null
+
+    fun playAlertSound() {
+        // mediaPlayerがnullなら何もしない
+        // あったらreleaseする
+        mediaPlayer?.release()
+
+        mediaPlayer = MediaPlayer.create(this, R.raw.kokage_de_yuttari_1)
+        mediaPlayer?.start()
+
+        // 再生が終了したらreleaseする処理だが、stopAlertSoundを作ったのでコメント化
+//        mediaPlayer?.setOnCompletionListener {
+//            it.release()
+//        }
+    }
+
+    fun stopAlertSound() {
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
+        mediaPlayer = null
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,11 +54,13 @@ class MainActivity : ComponentActivity() {
             onAlert = {
                 runOnUiThread {
                     condition = "ALERT受信"
+                    playAlertSound()
                 }
             },
             onReset = {
                 runOnUiThread {
                     condition = "待機中"
+                    stopAlertSound()
                 }
             }
         )
