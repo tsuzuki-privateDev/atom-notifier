@@ -24,9 +24,14 @@ import android.view.WindowManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 lateinit var server: AlertHttpServer
 
@@ -106,10 +111,34 @@ fun AlertScreen(condition: String, modifier: Modifier = Modifier) {
         }
 
     } else {
-        Column {
+        // 現在時刻を取得（初期表示）
+        val currentTime = remember {
+            mutableStateOf(
+                LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))
+            )
+        }
+
+        // currentTime を state として持ち、1秒毎に中身を書き換える
+        LaunchedEffect(Unit) {
+            while (true) {
+                currentTime.value =
+                    LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))
+                delay(1000)
+            }
+        }
+
+        Column (
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(
-                text = "$condition\n時計は後で追加",
-                modifier = modifier
+                text = currentTime.value,
+                fontSize = 80.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
             )
         }
     }
