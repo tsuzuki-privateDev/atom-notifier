@@ -29,6 +29,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import kotlinx.coroutines.delay
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -61,6 +64,18 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // アプリ起動中はスリープにしない
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // システムバー（ステータスバー等）領域までレイアウトを広げる
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        // ステータスバーとナビゲーションバーを隠す
+        val controller = WindowCompat.getInsetsController(window, window.decorView)
+        // 没入モード
+        controller.hide(WindowInsetsCompat.Type.systemBars())
+        // スワイプしたときだけ一時的にシステムバーを表示する
+        controller.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 
         server = AlertHttpServer(
             8080,
