@@ -44,6 +44,9 @@ lateinit var server: AlertHttpServer
 class MainActivity : ComponentActivity() {
     var condition by mutableStateOf("待機中")
     var temperatureText by mutableStateOf("--.-℃")
+
+    var weatherText by mutableStateOf("--")
+
     var mediaPlayer: MediaPlayer? = null
 
     fun playAlertSound() {
@@ -109,6 +112,7 @@ class MainActivity : ComponentActivity() {
                 Log.e("Weather", "code=${weather.current.weatherCode}")
 
                 temperatureText = "${weather.current.temperature2m}℃"
+                weatherText = weatherCodeToText(weather.current.weatherCode)
             } catch (e: Exception) {
                 Log.e("Weather", "fetch failed", e)
             }
@@ -121,15 +125,21 @@ class MainActivity : ComponentActivity() {
             AtomNotifierTheme {
                 AlertScreen(
                     condition = condition,
-                    temperatureText = temperatureText
+                    temperatureText = temperatureText,
+                    weatherText = weatherText
                 )
             }
         }
     }
 }
 
+// 画面を作る関数には @Composable をつける
 @Composable
-fun AlertScreen(condition: String, temperatureText: String, modifier: Modifier = Modifier) {
+fun AlertScreen(
+    condition: String,
+    temperatureText: String,
+    weatherText: String,
+    modifier: Modifier = Modifier) {
 
     if (condition == "ALERT受信") {
 
@@ -183,9 +193,23 @@ fun AlertScreen(condition: String, temperatureText: String, modifier: Modifier =
                 fontSize = 32.sp,
                 color = Color.White
             )
+            Text(
+                text = weatherText,
+                fontSize = 32.sp,
+                color = Color.White
+            )
         }
     }
 }
+
+fun weatherCodeToText(code: Int): String =
+    when(code) {
+        0 -> "快晴"
+        1 -> "晴れ"
+        2 -> "一部くもり"
+        3 -> "くもり"
+        else -> "不明"
+    }
 
 //@Preview(showBackground = true)
 //@Composable
