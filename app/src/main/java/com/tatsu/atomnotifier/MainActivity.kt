@@ -3,6 +3,7 @@ package com.tatsu.atomnotifier
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -32,7 +33,9 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -40,6 +43,7 @@ lateinit var server: AlertHttpServer
 
 class MainActivity : ComponentActivity() {
     var condition by mutableStateOf("待機中")
+    var temperatureText by mutableStateOf("--.-℃")
     var mediaPlayer: MediaPlayer? = null
 
     fun playAlertSound() {
@@ -94,11 +98,30 @@ class MainActivity : ComponentActivity() {
         )
         server.start()
 
+
+        val weatherRepository = WeatherRepository()
+
+        lifecycleScope.launch {
+            try {
+                val weather = weatherRepository.fetchWeather()
+
+                Log.e("Weather", "temp=${weather.current.temperature2m}")
+                Log.e("Weather", "code=${weather.current.weatherCode}")
+
+                temperatureText = "${weather.current.temperature2m}℃"
+            } catch (e: Exception) {
+                Log.e("Weather", "fetch failed", e)
+            }
+        }
+
+        Log.d("Weather", "onCreate end")
+
         enableEdgeToEdge()
         setContent {
             AtomNotifierTheme {
                 AlertScreen(
-                    condition = condition
+                    condition = condition,
+                    temperatureText = temperatureText
                 )
             }
         }
@@ -106,7 +129,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AlertScreen(condition: String, modifier: Modifier = Modifier) {
+fun AlertScreen(condition: String, temperatureText: String, modifier: Modifier = Modifier) {
 
     if (condition == "ALERT受信") {
 
@@ -155,14 +178,19 @@ fun AlertScreen(condition: String, modifier: Modifier = Modifier) {
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
+            Text(
+                text = temperatureText,
+                fontSize = 32.sp,
+                color = Color.White
+            )
         }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    AtomNotifierTheme {
-        AlertScreen("待機中")
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun GreetingPreview() {
+//    AtomNotifierTheme {
+//        AlertScreen("待機中")
+//    }
+//}
