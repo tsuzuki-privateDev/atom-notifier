@@ -25,10 +25,15 @@ import android.view.WindowManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -46,6 +51,8 @@ class MainActivity : ComponentActivity() {
     var temperatureText by mutableStateOf("--.-℃")
 
     var weatherText by mutableStateOf("--")
+
+    var weatherIcon by mutableStateOf("❓")
 
     var mediaPlayer: MediaPlayer? = null
 
@@ -108,14 +115,13 @@ class MainActivity : ComponentActivity() {
             try {
                 val weather = weatherRepository.fetchWeather()
 
-                Log.e("Weather", "temp=${weather.current.temperature2m}")
-                Log.e("Weather", "code=${weather.current.weatherCode}")
-
                 temperatureText = "${weather.current.temperature2m}℃"
                 weatherText = weatherCodeToText(weather.current.weatherCode)
+                weatherIcon = weatherCodeToIcon(weather.current.weatherCode)
             } catch (e: Exception) {
                 Log.e("Weather", "fetch failed", e)
             }
+            delay(10 * 60 *1000L)
         }
 
         Log.d("Weather", "onCreate end")
@@ -126,7 +132,8 @@ class MainActivity : ComponentActivity() {
                 AlertScreen(
                     condition = condition,
                     temperatureText = temperatureText,
-                    weatherText = weatherText
+                    weatherText = weatherText,
+                    weatherIcon = weatherIcon
                 )
             }
         }
@@ -139,6 +146,7 @@ fun AlertScreen(
     condition: String,
     temperatureText: String,
     weatherText: String,
+    weatherIcon: String,
     modifier: Modifier = Modifier) {
 
     if (condition == "ALERT受信") {
@@ -188,15 +196,29 @@ fun AlertScreen(
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
-            Text(
-                text = temperatureText,
-                fontSize = 32.sp,
-                color = Color.White
-            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = temperatureText,
+                    fontSize = 40.sp,
+                    color = Color.White
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    text = weatherIcon,
+                    fontSize = 32.sp
+                )
+            }
             Text(
                 text = weatherText,
-                fontSize = 32.sp,
-                color = Color.White
+                fontSize = 28.sp,
+                color = Color.Gray
             )
         }
     }
@@ -208,7 +230,21 @@ fun weatherCodeToText(code: Int): String =
         1 -> "晴れ"
         2 -> "一部くもり"
         3 -> "くもり"
+        in 51..67 -> "雨"
+        in 71.. 75 -> "雪"
         else -> "不明"
+    }
+
+fun weatherCodeToIcon(code: Int):String =
+    when(code) {
+        0 -> "☀️"
+        1, 2 -> "🌤️"
+        3 -> "☁️"
+
+        in 51..67 -> "🌧️"
+        in 71..77 -> "❄️"
+
+        else -> "❓"
     }
 
 //@Preview(showBackground = true)
