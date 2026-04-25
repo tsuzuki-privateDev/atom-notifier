@@ -1,5 +1,6 @@
 package com.tatsu.atomnotifier
 
+import android.R.attr.onClick
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
@@ -28,10 +29,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,6 +58,8 @@ class MainActivity : ComponentActivity() {
     var weatherIcon by mutableStateOf("❓")
 
     var mediaPlayer: MediaPlayer? = null
+
+    val atomS3Repository = AtomS3Repository()
 
     fun playAlertSound() {
         // mediaPlayerがnullなら何もしない
@@ -133,7 +138,20 @@ class MainActivity : ComponentActivity() {
                     condition = condition,
                     temperatureText = temperatureText,
                     weatherText = weatherText,
-                    weatherIcon = weatherIcon
+                    weatherIcon = weatherIcon,
+                    onAckClick = {
+                        lifecycleScope.launch {
+                            try {
+                                val response = atomS3Repository.sendAck()
+                                Log.e("AtomS3", "ack success: $response")
+
+                                condition = "待機中"
+                                stopAlertSound()
+                            } catch (e: Exception) {
+                                Log.e("AtomS3", "ack failed", e)
+                            }
+                        }
+                    }
                 )
             }
         }
@@ -147,6 +165,7 @@ fun AlertScreen(
     temperatureText: String,
     weatherText: String,
     weatherIcon: String,
+    onAckClick: () -> Unit,
     modifier: Modifier = Modifier) {
 
     if (condition == "ALERT受信") {
@@ -156,14 +175,34 @@ fun AlertScreen(
                 Modifier
                     .fillMaxSize()
                     .background(Color.Red),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = condition,
-                fontSize = 60.sp,
-                color = Color.White
-            )
+            // 上半分（中央寄せ）
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = condition,
+                    fontSize = 60.sp,
+                    color = Color.White
+                )
+            }
+            // 下側（ボタン）
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 40.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Button(onClick = onAckClick) {
+                    Text(
+                        text = "了解"
+                    )
+                }
+            }
         }
 
     } else {
